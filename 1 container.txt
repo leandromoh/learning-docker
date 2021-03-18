@@ -1,0 +1,73 @@
+
+docker container run | to run a command in a new container
+
+docker container run -it ubuntu /bin/bash
+
+-it is short for --interactive + --tty
+without -t you cant see terminal
+without -i you cant iteract with it
+
+Firstly, Docker checked locally
+for the ubuntu image. If it can’t find the image on our local Docker host, it will
+reach out to the Docker Hub registry run by Docker, Inc., and look for it there.
+Once Docker had found the image, it downloaded the image and stored it on the
+local host.
+
+Docker then used this image to create a new container inside a filesystem. The
+container has a network, IP address, and a bridge interface to talk to the local
+host. Finally, we told Docker which command to run in our new container, in this
+case launching a Bash shell with the /bin/bash command.
+When the container had been created, Docker ran the /bin/bash command inside
+it;
+
+You can keep playing with the container for as long as you like. When you’re
+done, type exit, and you’ll return to the command prompt of your SO host
+
+now container is stopped because it only runs for as long as the command we specified, /bin/bash, is running.
+
+ --name to specify container name
+ 
+
+======================
+
+-p to:from
+docker container run -p 8080:80 nginx
+
+-d flag to tell Docker to detach the container (to run in background).
+
+https://docs.docker.com/engine/reference/commandline/container/
+
+docker container ls    | to show all running containers
+docker container ls -a | to show all containers
+
+docker container start mycontainer
+docker container stop mycontainer | to sends a SIGTERM signal to the Docker container’s running process
+docker container kill mycontainer | to send a SIGKILL signal to the container’s process
+docker container rm mycontainer | to delete a container
+
+
+docker attach mycontainer | to connect in a detach container that has iteractive terminal
+
+docker run --name daemon_dave -d ubuntu /bin/sh -c "while true; do echo hello world; sleep 1; done"
+
+docker run --name daemon_dave --rm -i -t ubuntu bash | --rm to remove container when it exit, without rm it would be stopped
+
+docker logs daemon_dave | to see logs inside container
+docker logs --tail 10 daemon_dave | to see 10 last logs inside container
+docker top daemon_dave | to see each process running inside container
+docker stats mycontainer | to see live statistics for CPU, memory and network and storage I/O performance and metrics
+docker container prune	| to remove all stopped containers
+docker container inspect | to interrogate our container and return its configuration information and a wide variety of other useful data
+
+There are two types of commands we can run inside a container: background and interactive. 
+Background tasks run inside the container without interaction and interactive tasks remain in the foreground. 
+Interactive tasks are useful for tasks like opening a shell inside a container.
+
+docker exec | to command runs a new command in a running container
+
+We can use a docker exec -d background command to run maintenance, monitoring or management tasks inside a running container
+docker exec -d daemon_dave touch /etc/new_config_file
+
+
+We can also run interactive tasks like opening a shell inside our daemon_dave container.
+docker exec -t -i daemon_dave /bin/bash | to create a new bash session inside the container

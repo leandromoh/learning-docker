@@ -30,8 +30,11 @@ now container is stopped because it only runs for as long as the command we spec
 
 ======================
 
--p to:from
-docker container run -p 8080:80 nginx
+-p to:from; we are mapping port 8080 in localhost to listen port 80 inside container
+docker container run -p localhost:8080:80 nginx
+docker container run -p           8080:80 nginx
+
+Docker also has a shortcut, -P, that allows us to publish all ports we’ve exposed via EXPOSE instructions in our Dockerfile.
 
 -d flag to tell Docker to detach the container (to run in background).
 
@@ -44,7 +47,7 @@ docker container start mycontainer
 docker container stop mycontainer | to sends a SIGTERM signal to the Docker container’s running process
 docker container kill mycontainer | to send a SIGKILL signal to the container’s process
 docker container rm mycontainer | to delete a container
-
+docker container port mycontainer 27017 | to get which localhost port was mapped to listening 27017 container port
 
 docker attach mycontainer | to connect in a detach container that has iteractive terminal
 

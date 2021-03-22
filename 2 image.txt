@@ -1,0 +1,168 @@
+What is a Docker image?
+
+Images are the building blocks of the Docker world. You launch your containers
+from images. Images are the ”build” part of Docker’s life cycle. They are a layered format, using Union file systems, that are built step-by-step using a series of
+instructions. 
+You can consider images to be the ”source code” for your containers. They are
+highly portable and can be shared, stored, and updated
+
+
+A Docker image is made up of filesystems layered over each other
+
+At the base is a boot filesystem, bootfs, which resembles the typical Linux/Unix boot filesystem
+When a container has booted, it is moved into memory, and the boot filesystem is unmounted to free up the RAM used by the initrd disk image
+Docker next layers a root filesystem, rootfs, on top of the boot filesystem. This rootfs can be one or more operating systems (e.g., a Debian or Ubuntu filesystem)
+
+Docker root filesystem is mounted read-only stays in read-only mode, 
+
+Docker takes advantage of a `union mount` to add more read-only filesystems onto the root filesystem. 
+
+A `union mount` is a mount that allows several filesystems to be
+mounted at one time but appear to be one filesystem. The union mount overlays
+the filesystems on top of one another so that the resulting filesystem may contain
+files and subdirectories from any or all of the underlying filesystems.
+
+Images can be layered on top of
+one another. The image below is called the parent image and you can traverse
+each layer until you reach the bottom of the image stack where the final image
+is called the base image. Finally, when a container is launched from an image,
+Docker mounts a read-write filesystem on top of any layers below. This is where
+whatever processes we want our Docker container to run will execute.
+
+When Docker first starts a container, the initial read-write layer is empty. As
+changes occur, they are applied to this layer; for example, if you want to change
+a file, then that file will be copied from the read-only layer below into the readwrite layer. The read-only version of the file will still exist but is now hidden
+underneath the copy.
+
+This pattern is traditionally called ”copy on write” and is one of the features that
+makes Docker so powerful.
+
+The image-layering framework, allows us to quickly build images and run containers with our applications
+and services.
+
+When we create a new container, we add a new & thin writable layer on top of the underlying stack of layers present in the base docker image. All changes made to the running container, such as creating new files, modifying existing files or deleting files, are written to this thin writable container layer.
+
+# Union filesystems
+https://medium.com/@jessgreb01/digging-into-docker-layers-c22f948ed612
+
+Using Union filesystems is super cool because they merge all the files for each image layer together and presents them as one single read-only directory at the union mount point. If there are duplicate files in different layers, the file on the higher level layer is what is displayed.
+
+# Why use a union mount system for Docker?
+Using a union filesystem allows each layer that is created to be reused by an unlimited number of images. 
+This saves a lot of disk space and allows images to be built faster since it is just re-using an existing layer. 
+Additionally, the read/write top layer gives the appearance that you can modify the image, but the read-only layers below actually maintain their integrity of the container by isolating the contents of the filesystem.
+
+# repositories & registries
+
+Images live inside repositories, and repositories live on registries. 
+The default registry is the public registry managed by Docker, Inc., Docker Hub
+Each repository can contain multiple images (e.g., the ubuntu repository contains
+images for Ubuntu 12.04, 12.10, 13.04, 13.10, 14.04, 16.04).
+We identify each image inside that repository by what Docker calls tags
+By default, if you don’t specify a specific tag, Docker will download the 'latest' tag
+
+There are two types of repositories: 
+- user repositories, which contain images contributed by Docker users, and 
+- top-level repositories, which are controlled by the people behind Docker.
+A user repository takes the form of a username and a repository name; for example, jamtur01/puppet (Username/Repository Name)
+
+Alternatively, a top-level repository only has a repository name like ubuntu. The
+top-level repositories are managed by Docker Inc and by selected vendors who provide curated base images that you can build upon (e.g., the Fedora team provides
+a fedora image). 
+
+docker pull ubuntu:16.04 | to download ubuntu:16.04 image, ubuntu is repository, 16.04 is tag, which is an Ubuntu 16.04 operating system
+docker image ls | to see all images downloaded
+docker image rm imageid
+
+docker images | to see all images downloaded
+docker images ubuntu | to list all ubuntu images downloaded
+
+
+# create a Docker image
+
+There are two ways to create a Docker image:
+• Via the docker commit command (not recommended)
+• Via the docker build command with a Dockerfile (more flexible and powerful)
+
+## docker commit
+
+docker commit creates a new image from the currently state of a container
+
+docker commit 4aab3ce3cb76 jamtur01/apache2 
+    | to create a new image/target repository called 'jamtur01/apache2' from state of 4aab3ce3cb76 container 
+
+docker commit command only commits the differences between the image the container
+was created from and the current state of the container. This means updates are
+lightweight
+
+## Dockerfile
+
+It is a text file that contains all commands, in order, needed to build a given image.
+Once we have a Dockerfile we then use the docker build command to build a new image from the instructions in the Dockerfile.
+Dockerfile is better than docker commit because it provides a more repeatable, transparent, and idempotent mechanism for creating images
+
+Docker executing instructions roughly follow a workflow:
+- Docker runs a container from the image.
+- An instruction executes and makes a change to the container.
+- Docker runs the equivalent of docker commit to commit a new layer.
+- Docker then runs a new container from this new image.
+- The next instruction in the file is executed, and the process repeats until all instructions have been executed.
+
+### build context
+
+When you issue a docker build command, the current working directory is called the build context. 
+
+By default, the Dockerfile is assumed to be located here, but you can specify a different location with the file flag (-f). 
+
+Regardless of where the Dockerfile actually lives, all recursive contents of files and directories in the current directory will upload to Docker daemon (dockerd) as the build context
+
+This provides the Docker daemon with direct access to any code, files or other data you might want to include in the image.
+
+Use can have a file called .dockerignore to ignore some patterns and avoid upload unnecessary files 
+
+### Dockerfile commands
+
+Instructions in the Dockerfile are processed from the top down, so you should order them accordingly.
+Each instruction adds a new layer to the image and then commits the image.
+Any line that starts with a # is considered a comment.
+
+https://docs.docker.com/engine/reference/builder/
+
+- FROM instruction specifies an existing image that the following instructions will operate on; this image is called the base image.
+- 'LABEL maintainer' instruction tells Docker who the author of the image is and what their email address is. 
+- RUN instruction executes commands on the current image
+- EXPOSE instruction informs Docker that the container listens on the specified network ports at runtime.
+  It does not actually publish the port. It functions as a type of documentation between the person who builds the image and the person who runs the container, about which ports are intended to be published. To actually publish the port when running the container, use the -p flag on docker run
+- ENV instruction sets environment variables in the image
+- CMD instruction specifies the command to run when a container is launched (this command may be override by the docker run command)
+- ENTRYPOINT instruction allows you to configure a container that will run as an executable
+- WORKDIR instruction provides a way to set the working directory for the container and the ENTRYPOINT and/or CMD
+
+### Dockerfile example
+
+# Version: 0.0.1
+FROM ubuntu:16.04
+LABEL maintainer = "maintainer name and contact"
+RUN apt-get update && apt-get install -y nginx
+RUN echo 'Hi, I am in your container' > /var/www/html/index.html
+EXPOSE 80
+
+docker build -t="jamtur01/static_web" . | to build image with tag lastest and search dockerfile inside current dir
+docker build -t="jamtur01/static_web:v1" | build image with tag v1, build context is currently dir and expect dockerfile inside it
+docker build -t "jamtur01/static_web" -f /path/to/file | build image with tag lastest and use file as dockerfile, but must still be within the build context.
+
+
+### Dockerfiles and the build cache
+
+Since images are read-only, Docker is able to be really clever about building images. 
+It will treat previous layers as a cache during build and in fact start the build process straight from first the changed layer. 
+This can save you a lot of time when building images if a previous step has not changed
+
+docker build --no-cache -t="jamtur01/static_web" .
+
+
+### Viewing image layers and dockerfile
+
+We see each of the image layers inside our new jamtur01/static_web image and the Dockerfile instruction that created them with command
+
+docker history containerid

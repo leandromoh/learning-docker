@@ -72,7 +72,7 @@ a fedora image).
 
 docker pull ubuntu:16.04 | to download ubuntu:16.04 image, ubuntu is repository, 16.04 is tag, which is an Ubuntu 16.04 operating system
 docker image ls | to see all images downloaded
-docker image rm imageid
+docker image rm imageid | to remove an image
 
 docker images | to see all images downloaded
 docker images ubuntu | to list all ubuntu images downloaded
@@ -137,6 +137,7 @@ https://docs.docker.com/engine/reference/builder/
 - CMD instruction specifies the command to run when a container is launched (this command may be override by the docker run command)
 - ENTRYPOINT instruction allows you to configure a container that will run as an executable
 - WORKDIR instruction provides a way to set the working directory for the container and the ENTRYPOINT and/or CMD
+- ARG instruction defines variables inside dockerfile that can be passed at build-time via the docker build command
 
 ### Dockerfile example
 
@@ -156,7 +157,8 @@ docker build -t "jamtur01/static_web" -f /path/to/file | build image with tag la
 
 Since images are read-only, Docker is able to be really clever about building images. 
 It will treat previous layers as a cache during build and in fact start the build process straight from first the changed layer. 
-This can save you a lot of time when building images if a previous step has not changed
+This can save you a lot of time when building images if a previous step has not changed.
+So put layers that does not change first is a good pratice to save building images time.
 
 docker build --no-cache -t="jamtur01/static_web" .
 
@@ -165,4 +167,4 @@ docker build --no-cache -t="jamtur01/static_web" .
 
 We see each of the image layers inside our new jamtur01/static_web image and the Dockerfile instruction that created them with command
 
-docker history containerid
+docker history imageid

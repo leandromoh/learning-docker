@@ -1,0 +1,35 @@
+A volume is a specially designated directory within one or more containers that
+bypasses the Union File System to provide several useful features for persistent or
+shared data:
+
+• Volumes can be shared and reused between containers.
+• A container doesn’t have to be running to share its volumes.
+• Changes to a volume are made directly.
+• Changes to a volume will not be included when you update an image.
+• Volumes persist until no containers use them.
+
+This allows us to add data (like source code), a database, or other content into an
+image without committing it to the image and allows us to share that data between
+containers. 
+
+This means that changes to a volume are made directly and bypass the image. 
+They will not be included when we commit or build an image.
+
+-v option allows us to create a volume in our container from a directory on the host
+The -v option works by specifying a directory or mount on the local host separated
+from the directory on the container with a :. If the container directory doesn’t
+exist Docker will create it.
+
+docker volume ls
+
+
+=====================================
+# volume dados-do-banco está associado ao diretório do container que guarda as informações que desejamos salvar /var/lib/mysql
+docker volume create --name dados-do-banco
+docker container run --name db -v dados-do-banco:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=alura
+=====================================
+
+docker run --name vtest -it -v C:\Users\leandro\Desktop\v0test:/var/le ubuntu bash
+root@9160a12f1c9f:/# cd var/le
+root@9160a12f1c9f:/var/le# echo "oi" > teste.txt
+teste.txt ira aparecer no diretorio C:\Users\leandro\Desktop\v0test

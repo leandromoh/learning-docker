@@ -50,7 +50,7 @@ docker container kill mycontainer | to send a SIGKILL signal to the container’
 docker container rm mycontainer | to delete a container
 docker container port mycontainer 27017 | to get which host port was mapped to listening 27017 container port
 
-docker attach mycontainer | to connect in a detach container that has iteractive terminal
+docker container attach mycontainer | to connect in a detach running container that has iteractive terminal
 
 docker run --name daemon_dave -d ubuntu /bin/sh -c "while true; do echo hello world; sleep 1; done"
 
